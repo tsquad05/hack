@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+     <meta charset="UTF-8">
+     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Login</title>
+     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+     <style>
+         body {
+    font-family: Arial, sans-serif;
+    background-color: #f1f1f1;
+  }
+  
+  .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  .form-container {
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0px 2px 20px rgba(0, 0, 0, 0.2);
+    width: 400px;
+  }
+  
+  h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  input[type="text"],
+  input[type="password"],
+  input[type="email"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  
+  button {
+    width: 100%;
+    padding: 12px;
+    background-color: #00204a;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #00204ab1;
+  }
+  
+  .message {
+    margin-top: 16px;
+    text-align: center;
+  }
+  
+  .message a {
+    color: #00204a;
+  }
+  
+  .message a:hover {
+    text-decoration: underline;
+  }
+  
+  .form-toggle {
+    margin-bottom: 20px;
+  }
+  
+  .toggle-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background-color: transparent;
+    color: #888;
+    cursor: pointer;
+  }
+  
+  .toggle-btn.active {
+    color: #000;
+    background-color: #e6e6e6;
+  }
+  
+  #signup-form {
+    display: none;
+  }
+  
+        </style>        
+</head>
+
+<body>
+    <div class="container">
+        <div class="form-container">
+          <div class="form-toggle">
+            <button id="login-toggle" class="toggle-btn active">Sign In</button>
+            
+          </div>
+          <div id="login-form">
+            <h2>Welcome Back!</h2>
+            <input type="text" placeholder="Username or Email" required>
+            <input type="password" placeholder="Password" required>
+            <button type="submit">Sign In</button>
+            <p class="message">Not registered? <a href="register.html" class="toggle-link">Create an account</a></p>
+          </div>
+          
+        </div>
+      </div>
+      <script src="js/"></script>
+
+     <script type="module">
+        //-----------------------FIREBASE CONFIG-------------------------------------------------------------------//
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCMUPLP2O0GlgH-AI0xSeWs0zX1GqWDnxI",
+          authDomain: "fbx-pro-3e320.firebaseapp.com",
+          databaseURL: "https://fbx-pro-3e320-default-rtdb.firebaseio.com",
+          projectId: "fbx-pro-3e320",
+          storageBucket: "fbx-pro-3e320.appspot.com",
+          messagingSenderId: "396370789893",
+          appId: "1:396370789893:web:64030bd0f384889731fe6c",
+          measurementId: "G-TDS9D2QTBQ"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        
+        import { getDatabase, ref, set, child, get }
+            from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+        
+        const db = getDatabase();
+
+//------------------------------THE REFRENECES---------------------------------------------------------------------//
+
+        const username = document.getElementById('userInp');
+        const pass = document.getElementById('passInp');
+        const submit = document.getElementById('sub_btn');
+
+//------------------------------AUTHENTICATION PROCESS-------------------------------------------------------------//          
+         
+    function AuthenticateUser(){
+        const dbref = ref(db);
+
+        get(child(dbref, "UsersList/"+ username.value)).then((snapshot)=>{
+            if(snapshot.exists()){
+                // console.log("wait")
+                // alert("Account already exists")
+                let dbpass = decPass(snapshot.val().password);
+                // console.log(dbpass)
+                // console.log("comingthrough")
+                if(dbpass == pass.value){
+                    alert("Logged in successfully");
+                     login(snapshot.val());
+                }
+
+                else{
+                     alert("username or password is invalid");
+                }
+
+            }
+
+            else{
+                alert("This User does not exist");
+            }
+        });   
+    }
+
+//------------------------------DECRIPTION-------------------------------------------------------------------------//    
+
+    // function decPass(dbpass){
+    //            var pass12 = CryptoJS.AES.decrypt(dbpass, pass.value);
+    //            return pass12.toString(CryptoJS.enc.utf8);
+    //         }
+
+    function decPass(dbpass) {
+        var decryptedBytes = CryptoJS.AES.decrypt(dbpass, pass.value);
+        var decryptedPassword = decryptedBytes.toString(CryptoJS.enc.Utf8);
+        return decryptedPassword;
+}
+
+
+//------------------------------LOGIN------------------------------------------------------------------------------//    
+
+        function login(user){
+            let keepLoggedIn = document.getElementById('customSwitch1').checked;
+
+            if(!keepLoggedIn){
+                 sessionStorage.setItem('user', JSON.stringify(user));
+                 console.log('User logged in successfully')
+                 window.location="home.html";
+            }
+
+            else{
+                 localStorage.setItem('keepLoggedIn', 'yes');
+                 localStorage.setItem('user', JSON.stringify(user));
+                 console.log('User logged in successfully')
+                 window.location="home.html";
+            }
+        }
+
+//---------------------------------ASSIGN THE EVENTS---------------------------------------------------------------//
+
+      submit.addEventListener('click', AuthenticateUser);
+
+    </script>
+</body>
+
+</html>
